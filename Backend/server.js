@@ -13,7 +13,28 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 // Increase payload limit for image uploads (10MB)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cors());
+
+// CORS configuration for production
+const corsOptions = {
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        process.env.CLIENT_URL, // Your Vercel domain
+        /\.vercel\.app$/ // Allow all Vercel preview deployments
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Root route for health check
+app.get("/", (req, res) => {
+    res.json({ 
+        status: "online",
+        message: "NovaMind API Server is running",
+        version: "1.0.0"
+    });
+});
 
 app.use("/api/chat", chatRoutes);
 app.use("/api/auth", authRoutes);
