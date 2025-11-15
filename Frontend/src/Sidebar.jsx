@@ -11,9 +11,11 @@ function Sidebar({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) {
     const getAllThreads = async () => {
         if (!user) return;
         
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/chat/threads?userId=${encodeURIComponent(userId)}`);
+            const response = await fetch(`${API_URL}/api/chat/threads?userId=${encodeURIComponent(userId)}`);
             const res = await response.json();
             const filteredData = res.map(thread => ({threadId: thread.threadId, title: thread.title}));
             setAllThreads(filteredData);
@@ -43,9 +45,11 @@ function Sidebar({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) {
             return;
         }
 
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/chat/threads/${newThreadId}?userId=${encodeURIComponent(userId)}`);
+            const response = await fetch(`${API_URL}/api/chat/threads/${newThreadId}?userId=${encodeURIComponent(userId)}`);
             const res = await response.json();
             setPrevChats(res);
             setNewChat(false);
@@ -62,9 +66,11 @@ function Sidebar({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) {
     const deleteThread = async (threadId) => {
         if (!user) return;
         
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/chat/threads/${threadId}?userId=${encodeURIComponent(userId)}`, {
+            const response = await fetch(`${API_URL}/api/chat/threads/${threadId}?userId=${encodeURIComponent(userId)}`, {
                 method: "DELETE"
             });
 
