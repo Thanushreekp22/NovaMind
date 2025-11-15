@@ -14,11 +14,12 @@ function App() {
   const [prevChats, setPrevChats] = useState([]); //stores all chats of curr threads
   const [newChat, setNewChat] = useState(true);
   const [allThreads, setAllThreads] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar toggle
 
-  // Check if user is already logged in
+  // Check if user is logged in (only persists during browser session - cleared when browser closes)
   useEffect(() => {
-    const storedUser = localStorage.getItem('novamind_user');
-    const isLoggedIn = localStorage.getItem('novamind_logged_in');
+    const storedUser = sessionStorage.getItem('novamind_user');
+    const isLoggedIn = sessionStorage.getItem('novamind_logged_in');
     if (storedUser && isLoggedIn === 'true') {
       const userData = JSON.parse(storedUser);
       setUser(userData);
@@ -26,16 +27,12 @@ function App() {
   }, []);
 
   const handleLogin = (userData) => {
-    // Force clear any existing user data first
-    localStorage.removeItem('novamind_user');
-    localStorage.setItem('novamind_logged_in', 'false');
-    
-    // Set new user data
+    // Set user data and persist to sessionStorage (cleared when browser closes)
     setUser(userData);
-    localStorage.setItem('novamind_logged_in', 'true');
-    localStorage.setItem('novamind_user', JSON.stringify(userData));
+    sessionStorage.setItem('novamind_logged_in', 'true');
+    sessionStorage.setItem('novamind_user', JSON.stringify(userData));
     
-    // Clear previous user's data completely
+    // Clear previous data for fresh session
     setPrevChats([]);
     setAllThreads([]);
     setCurrThreadId(uuidv1());
@@ -45,9 +42,11 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Clear user and all session data
     setUser(null);
-    localStorage.setItem('novamind_logged_in', 'false');
-    localStorage.removeItem('novamind_user');
+    sessionStorage.setItem('novamind_logged_in', 'false');
+    sessionStorage.removeItem('novamind_user');
+    
     // Clear chat data on logout
     setPrevChats([]);
     setAllThreads([]);
@@ -65,7 +64,9 @@ function App() {
     prevChats, setPrevChats,
     allThreads, setAllThreads,
     user, 
-    handleLogout
+    handleLogout,
+    isSidebarOpen, 
+    setIsSidebarOpen
   }; 
 
   // Show auth screen if not logged in
@@ -76,8 +77,8 @@ function App() {
   return (
     <div className='app'>
       <MyContext.Provider value={providerValues}>
-          <Sidebar></Sidebar>
-          <ChatWindow></ChatWindow>
+          <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+          <ChatWindow />
         </MyContext.Provider>
     </div>
   )

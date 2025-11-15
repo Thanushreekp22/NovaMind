@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# MongoDB local data
+Backend/data/
+data/
+*.wt
+*.bson
+*.lock
+journal/
+diagnostic.data/

@@ -39,6 +39,13 @@ body {
   position: relative;
 }
 
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+}
+
 /* Add subtle animation to the entire app */
 .app::before {
   content: '';

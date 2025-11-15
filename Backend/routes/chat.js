@@ -4,24 +4,8 @@ import getAIResponse from "../utils/openai.js";
 
 const router = express.Router();
 
-//test
-router.post("/test", async(req, res) => {
-    try {
-        const thread = new Thread({
-            threadId: "abc",
-            title: "Testing New Thread2"
-        });
-
-        const response = await thread.save();
-        res.send(response);
-    } catch(err) {
-        console.log(err);
-        res.status(500).json({error: "Failed to save in DB"});
-    }
-});
-
 //Get all threads for a specific user
-router.get("/thread", async(req, res) => {
+router.get("/threads", async(req, res) => {
     const { userId } = req.query; // Get userId from query parameters
     
     if (!userId) {
@@ -38,7 +22,7 @@ router.get("/thread", async(req, res) => {
     }
 });
 
-router.get("/thread/:threadId", async(req, res) => {
+router.get("/threads/:threadId", async(req, res) => {
     const {threadId} = req.params;
     const { userId } = req.query;
 
@@ -60,7 +44,7 @@ router.get("/thread/:threadId", async(req, res) => {
     }
 });
 
-router.delete("/thread/:threadId", async (req, res) => {
+router.delete("/threads/:threadId", async (req, res) => {
     const {threadId} = req.params;
     const { userId } = req.query;
 
@@ -83,11 +67,21 @@ router.delete("/thread/:threadId", async (req, res) => {
     }
 });
 
-router.post("/chat", async(req, res) => {
-    const {threadId, message, userId, userEmail} = req.body;
+router.post("/", async(req, res) => {
+    const {threadId, message, userId, userEmail, image} = req.body;
+    
+    console.log('\n📨 Chat request received:');
+    console.log('- Message:', message);
+    console.log('- Has image:', !!image);
+    console.log('- Image size:', image ? `${(image.length / 1024).toFixed(2)} KB` : 'N/A');
 
-    if(!threadId || !message || !userId || !userEmail) {
-        return res.status(400).json({error: "missing required fields: threadId, message, userId, userEmail"});
+    // Message is optional if image is provided
+    if(!threadId || !userId || !userEmail) {
+        return res.status(400).json({error: "missing required fields: threadId, userId, userEmail"});
+    }
+    
+    if(!message && !image) {
+        return res.status(400).json({error: "Either message or image must be provided"});
     }
 
     try {
@@ -106,19 +100,20 @@ router.post("/chat", async(req, res) => {
             thread.messages.push({role: "user", content: message});
         }
 
-        const assistantReply = await getAIResponse(message);
+        const assistantReply = await getAIResponse(message, image);
         
         if (!assistantReply) {
-            return res.status(500).json({error: "No response from OpenAI"});
+            return res.status(500).json({error: "No response from AI"});
         }
 
         thread.messages.push({role: "assistant", content: assistantReply});
         thread.updatedAt = new Date();
 
         await thread.save();
+        
         res.json({reply: assistantReply});
     } catch(err) {
-        console.error("Error in /chat route:", err);
+        console.error("Error in /chat route:", err.message);
         res.status(500).json({error: err.message || "something went wrong"});
     }
 });

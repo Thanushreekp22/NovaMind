@@ -4,7 +4,7 @@ import { MyContext } from "./MyContext.jsx";
 import {v1 as uuidv1} from "uuid";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 
-function Sidebar() {
+function Sidebar({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) {
     const {allThreads, setAllThreads, currThreadId, setNewChat, setPrompt, setReply, setCurrThreadId, setPrevChats, user} = useContext(MyContext);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, threadId: null });
 
@@ -13,7 +13,7 @@ function Sidebar() {
         
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/thread?userId=${encodeURIComponent(userId)}`);
+            const response = await fetch(`http://localhost:5000/api/chat/threads?userId=${encodeURIComponent(userId)}`);
             const res = await response.json();
             const filteredData = res.map(thread => ({threadId: thread.threadId, title: thread.title}));
             setAllThreads(filteredData);
@@ -45,7 +45,7 @@ function Sidebar() {
 
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/thread/${newThreadId}?userId=${encodeURIComponent(userId)}`);
+            const response = await fetch(`http://localhost:5000/api/chat/threads/${newThreadId}?userId=${encodeURIComponent(userId)}`);
             const res = await response.json();
             setPrevChats(res);
             setNewChat(false);
@@ -64,7 +64,7 @@ function Sidebar() {
         
         try {
             const userId = user.email || user.guestId || 'anonymous';
-            const response = await fetch(`http://localhost:5000/api/thread/${threadId}?userId=${encodeURIComponent(userId)}`, {
+            const response = await fetch(`http://localhost:5000/api/chat/threads/${threadId}?userId=${encodeURIComponent(userId)}`, {
                 method: "DELETE"
             });
 
@@ -95,13 +95,17 @@ function Sidebar() {
     };
 
     return (
-        <section className="sidebar">
-            <button className="new-chat-button" onClick={createNewChat}>
-                <img src="/novamind-logo.png" alt="NovaMind logo" className="logo"></img>
-                <span>New Chat</span>
-            </button>
+        <>
+            {/* Overlay for mobile */}
+            {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+            
+            <section className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+                <button className="new-chat-button" onClick={() => { createNewChat(); setIsSidebarOpen(false); }}>
+                    <img src="/novamind-logo.png" alt="NovaMind logo" className="logo"></img>
+                    <span>New Chat</span>
+                </button>
 
-            <div className="sidebar-content">
+                <div className="sidebar-content">
                 <ul className="history">
                 {
                     allThreads?.map((thread, idx) => (
@@ -134,6 +138,7 @@ function Sidebar() {
                 onCancel={handleCancelDelete}
             />
         </section>
+        </>
     )
 }
 
